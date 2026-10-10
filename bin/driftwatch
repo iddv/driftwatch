@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Driftwatch launcher: no dependencies to install beyond Python 3.11+.
+set -e
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PY="${PYTHON:-python3}"
+if ! "$PY" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)' 2>/dev/null; then
+  echo "Driftwatch needs Python 3.11 or newer (found: $("$PY" --version 2>&1)). Set PYTHON=/path/to/python3 to override." >&2
+  exit 1
+fi
+export PYTHONPATH="$ROOT${PYTHONPATH:+:$PYTHONPATH}"
+exec "$PY" -m driftwatch "$@"
