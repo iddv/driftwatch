@@ -16,7 +16,7 @@ reviewers classify them, compares vendors by churn, and exports dated, hash-veri
   ./bin/driftwatch serve
   ```
 
-The rest of this README covers configuration, data, backup and the full guide; SECURITY.md and READINESS.md say what was checked before this release.
+The rest of this README covers configuration, data, backup and the full guide; SECURITY.md lists the known security issues; the checks that ran before each release are published with it (see NOTICE).
 
 Pure Python standard library: **there are no dependencies to install.**
 
