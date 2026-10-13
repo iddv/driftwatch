@@ -152,7 +152,8 @@ def _entry(req, eid):
 def entry_page(req, e, errors=None, form=None, status=200, banner=""):
     cfg, db = req.cfg, req.db
     form = form or {}
-    p = [f'<p><a href="/timeline">&larr; Timeline</a>{" · <a href=\"/triage\">Triage queue</a>" if req.can_edit else ""}</p>',
+    triage = ' · <a href="/triage">Triage queue</a>' if req.can_edit else ""
+    p = [f'<p><a href="/timeline">&larr; Timeline</a>{triage}</p>',
          f'<h1>{esc(e["title"])}</h1>{banner}']
     meta = [("Vendor", f'<a href="/vendors/{e["vendor_id"]}">{esc(e["vendor_name"])}</a>'),
             ("Source", f'<a href="/sources/{e["source_id"]}">{esc(e["source_url"])}</a>'),
