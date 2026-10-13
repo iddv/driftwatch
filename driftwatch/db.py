@@ -150,6 +150,8 @@ class Database:
     def conn(self) -> sqlite3.Connection:
         c = getattr(self._local, "conn", None)
         if c is None:
+            if not os.path.exists(self.path):
+                os.close(os.open(self.path, os.O_WRONLY | os.O_CREAT, 0o600))
             c = sqlite3.connect(self.path, timeout=30, isolation_level=None)
             c.row_factory = sqlite3.Row
             c.execute("PRAGMA journal_mode=WAL")

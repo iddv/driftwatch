@@ -101,7 +101,7 @@ def prepare_data_dir(cfg: Config):
     """Create the data directory and make sure it is writable; resolve the session secret."""
     d = cfg.data_dir
     try:
-        d.mkdir(parents=True, exist_ok=True)
+        d.mkdir(parents=True, exist_ok=True, mode=0o700)
         probe = d / ".write-test"
         probe.write_text("ok")
         probe.unlink()

@@ -94,7 +94,9 @@ def cmd_backup(args, cfg):
         snap = Path(tmp) / "driftwatch.db"
         db.backup_to(snap)  # consistent even while the service is running
         tmp_tar = out.with_name(out.name + ".partial")
-        with tarfile.open(tmp_tar, "w:gz") as tf:
+        tmp_tar.unlink(missing_ok=True)
+        fd = os.open(tmp_tar, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        with os.fdopen(fd, "wb") as raw, tarfile.open(fileobj=raw, mode="w:gz") as tf:
             tf.add(snap, "driftwatch.db")
             for sub in ("fixtures", "exports"):
                 if (cfg.data_dir / sub).is_dir():
@@ -144,11 +146,13 @@ def cmd_restore(args, cfg):
                 for ext in ("-wal", "-shm"):
                     Path(str(cfg.db_path) + ext).unlink(missing_ok=True)
                 shutil.move(Path(tmp) / "driftwatch.db", cfg.db_path)
+                os.chmod(cfg.db_path, 0o600)
                 for sub in ("fixtures", "exports"):
                     if (Path(tmp) / sub).is_dir():
                         shutil.copytree(Path(tmp) / sub, cfg.data_dir / sub, dirs_exist_ok=True)
                 if (Path(tmp) / "secret.key").exists() and not os.environ.get("DRIFTWATCH_SESSION_SECRET"):
                     shutil.copy(Path(tmp) / "secret.key", cfg.data_dir / "secret.key")
+                    os.chmod(cfg.data_dir / "secret.key", 0o600)
         db = Database(cfg.db_path)
         db.migrate(backup_dir=cfg.data_dir / "backups")
         db.audit("cli", "restore", {"file": src.name})
