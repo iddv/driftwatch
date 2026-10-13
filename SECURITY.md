@@ -6,15 +6,14 @@ Please report security problems privately, not in a public issue: use the reposi
 
 ## Known issues
 
+Fixed since the last release:
+
+### S5 (low): Database and backup archives are world-readable — fixed
+
+- Fix: the data directory is 0700, `driftwatch.db` and `secret.key` are 0600, and backup archives are created 0600 (`os.open`), not chmod-ed afterwards; restore applies the same modes.
+- Tests: `tests/acceptance/test_backup_archives_which_hold_password_hashes_secret_key.py`, `tests/acceptance/test_data_dir_and_database_owner_only_permissions.py`
+
 Open at the last release:
-
-### S5 (low): Database and backup archives are world-readable
-
-- Where: driftwatch/cli.py backup; data/driftwatch.db
-- What happens: -rw-rw-r-- backup (contains secret.key and password hashes); -rw-r--r-- driftwatch.db
-- What should happen: 0600 files and a 0700 data directory
-- Reproduce: `driftwatch backup /tmp/b.tgz; ls -l /tmp/b.tgz data/driftwatch.db`
-- Test: `tests/acceptance/test_backup_archives_which_hold_password_hashes_secret_key.py` (marked as a known open item)
 
 ### S6 (low): Session cookie has no Secure flag, and the setup page is open to whoever connects first
 
