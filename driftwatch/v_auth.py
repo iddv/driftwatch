@@ -4,8 +4,16 @@ from .router import route, page, redirect, Resp, safe_next
 from .util import esc
 
 
-def _set_session(resp, token):
-    resp.cookies.append(f"dw_sess={token}; Path=/; HttpOnly; SameSite=Lax")
+def _secure(req):
+    """True when a reverse proxy says the request arrived over HTTPS."""
+    for k, v in req.headers.items():
+        if k.lower() == "x-forwarded-proto":
+            return v.split(",")[0].strip().lower() == "https"
+    return False
+
+
+def _set_session(req, resp, token):
+    resp.cookies.append(f"dw_sess={token}; Path=/; HttpOnly; SameSite=Lax" + ("; Secure" if _secure(req) else ""))
 
 
 @route("GET", "/", role=None)
@@ -15,7 +23,7 @@ def index(req):
 
 def _setup_form(req, errors=None, username=""):
     return (f'<div class="card" style="max-width:34rem"><h1>Welcome to Driftwatch</h1>'
-            '<p>Create the admin account to finish setup. This page is only available until an admin exists.</p>'
+            '<p>Create the admin account to finish setup. This page is only available until an admin exists, so set up a network-exposed install at once.</p>'
             f'{ui.error_summary(errors)}<form method="post" action="/setup">{req.csrf()}'
             + ui.field("Admin username", "username", username, errors, required=True)
             + ui.field("Password", "password", "", errors, "password", f"At least {req.db.int_setting('auth.min_password')} characters", True, 'autocomplete="new-password"')
@@ -56,7 +64,7 @@ def setup_post(req):
         req.db.audit(user, "setup.admin_created")
     tok = auth.create_session(req.db, uid)
     resp = redirect(req, "/vendors")
-    _set_session(resp, tok)
+    _set_session(req, resp, tok)
     return resp
 
 
@@ -88,7 +96,7 @@ def login_post(req):
     tok = auth.create_session(req.db, res.user["id"])
     dest = "/profile/password" if res.user["must_change"] else safe_next(req.get("next"))
     resp = redirect(req, dest)
-    _set_session(resp, tok)
+    _set_session(req, resp, tok)
     return resp
 
 
@@ -98,7 +106,7 @@ def logout(req):
         req.db.audit(req.user, "logout")
     auth.destroy_session(req.db, req.token)
     resp = redirect(req, "/login")
-    resp.cookies.append("dw_sess=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0")
+    resp.cookies.append("dw_sess=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0" + ("; Secure" if _secure(req) else ""))
     return resp
 
 
