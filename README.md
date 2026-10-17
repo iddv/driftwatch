@@ -141,7 +141,10 @@ carefully as the data directory. Both commands use `DRIFTWATCH_DATA_DIR`, so giv
 - **"Port 8080 is already in use"**: set `DRIFTWATCH_LISTEN`, for example `DRIFTWATCH_LISTEN=127.0.0.1:8081`.
 - **"data directory ... is not writable"**: fix the permissions of `DRIFTWATCH_DATA_DIR` or choose another one.
 - **Cannot reach it from another machine**: it listens on 127.0.0.1 only. Set `DRIFTWATCH_LISTEN=0.0.0.0:8080`
-  deliberately, and put a TLS reverse proxy in front of it.
+  deliberately, and put a TLS reverse proxy in front of it. The proxy must send `X-Forwarded-Proto: https`;
+  the session cookie then gets the `Secure` attribute (plain HTTP on loopback is unaffected).
+- **First-run exposure**: `/setup` is open to anyone who can connect until an admin exists, so set up a
+  network-exposed fresh install at once.
 - **A source says "refused: the address is loopback, link-local or on a private network"**: add the host to
   `DRIFTWATCH_FETCH_ALLOW_HOSTS`.
 - **A source is "failing"**: open the source page and read its fetch log for the exact reason.
