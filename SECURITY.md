@@ -16,12 +16,13 @@ Open at the last release:
 - Reproduce: `driftwatch backup /tmp/b.tgz; ls -l /tmp/b.tgz data/driftwatch.db`
 - Test: `tests/acceptance/test_backup_archives_which_hold_password_hashes_secret_key.py` (marked as a known open item)
 
-### S6 (low): Session cookie has no Secure flag, and the setup page is open to whoever connects first
+### S6 (low): The setup page is open to whoever connects first
 
-- Where: driftwatch/v_auth.py:8; /setup
-- What happens: dw_sess=...; Path=/; HttpOnly; SameSite=Lax. /setup is unauthenticated until an admin exists
-- What should happen: Secure when served over HTTPS; document that exposed fresh installs must be set up at once
-- Reproduce: `read Set-Cookie after POST /login; open /setup on a network-exposed fresh install`
+- Where: /setup
+- What happens: /setup is unauthenticated until an admin exists. The session cookie now carries Secure when the proxy sends `X-Forwarded-Proto: https`
+- What should happen: exposed fresh installs must be set up at once (documented in the README and on the setup page)
+- Reproduce: `open /setup on a network-exposed fresh install`
+- Test: `tests/acceptance/test_session_cookie_secure_over_https.py`
 
 ## What was checked
 
